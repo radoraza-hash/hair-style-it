@@ -21,5 +21,29 @@ export const saveBooking = async (bookingData: any) => {
   }).select().single();
 
   if (error) throw error;
+  
+  // Envoyer l'email de confirmation si l'email est fourni
+  if (bookingData.email && data) {
+    try {
+      await supabase.functions.invoke("send-booking-confirmation", {
+        body: {
+          customerName: bookingData.name || "Client",
+          customerEmail: bookingData.email,
+          serviceName: bookingData.service.name,
+          bookingDate: format(bookingData.date, "yyyy-MM-dd"),
+          bookingTime: bookingData.time,
+          barberName: bookingData.barber.name,
+          totalPrice: bookingData.totalPrice,
+          options: bookingData.options,
+        },
+      });
+      console.log("Email de confirmation envoyé");
+    } catch (emailError) {
+      console.error("Erreur lors de l'envoi de l'email:", emailError);
+      // On ne bloque pas la réservation si l'email échoue
+    }
+  }
+  
   return data;
 };
+
