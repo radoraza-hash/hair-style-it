@@ -43,15 +43,15 @@ const handler = async (req: Request): Promise<Response> => {
       : '';
 
     const emailResponse = await resend.emails.send({
-      from: "Salon de Coiffure <noreply@doraeru102.resend.app>",
+      from: "Dev Booking <onboarding@resend.dev>",
       to: [customerEmail],
-      subject: "Confirmation de votre rendez-vous",
+      subject: "Confirmation de votre rendez-vous (TEST)",
       html: `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
           <h1 style="color: #333;">Bonjour ${customerName || 'cher client'},</h1>
           
           <p style="font-size: 16px; line-height: 1.6;">
-            Votre rendez-vous est bien enregistré ! ✨
+            Votre rendez-vous est bien enregistré ! ✅ (TEST)
           </p>
 
           <div style="background-color: #f5f5f5; padding: 20px; border-radius: 8px; margin: 20px 0;">
@@ -71,6 +71,7 @@ const handler = async (req: Request): Promise<Response> => {
           </p>
 
           <p style="margin-top: 30px; font-size: 14px; color: #999;">
+            Ceci est un email de TEST via resend.dev<br>
             À bientôt,<br>
             L'équipe du salon
           </p>
