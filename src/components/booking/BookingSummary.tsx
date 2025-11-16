@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
+import { Checkbox } from "@/components/ui/checkbox";
 import { BookingData } from "../BookingApp";
 import { Calendar, Clock, User, Phone, Scissors, Check, Mail } from "lucide-react";
 import { format } from "date-fns";
@@ -22,6 +23,7 @@ export const BookingSummary = ({
   onPrev 
 }: BookingSummaryProps) => {
   const [loading, setLoading] = useState(false);
+  const [subscribeNewsletter, setSubscribeNewsletter] = useState(false);
   
   const handleConfirm = async () => {
     try {
@@ -175,8 +177,34 @@ export const BookingSummary = ({
         </div>
       </Card>
 
+      {bookingData.email && (
+        <Card className="p-4">
+          <div className="flex items-start gap-3">
+            <Checkbox 
+              id="newsletter" 
+              checked={subscribeNewsletter}
+              onCheckedChange={(checked) => setSubscribeNewsletter(checked as boolean)}
+            />
+            <div className="space-y-1">
+              <label
+                htmlFor="newsletter"
+                className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
+              >
+                <div className="flex items-center gap-2">
+                  <Mail className="w-4 h-4 text-accent" />
+                  Recevoir nos offres et actualités
+                </div>
+              </label>
+              <p className="text-xs text-muted-foreground">
+                En cochant cette case, vous acceptez de recevoir notre newsletter avec nos promotions et nouveautés.
+              </p>
+            </div>
+          </div>
+        </Card>
+      )}
+
       <div className="flex justify-between">
-        <Button 
+        <Button
           onClick={onPrev}
           variant="outline"
           size="lg"
