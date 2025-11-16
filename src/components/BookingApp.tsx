@@ -89,13 +89,13 @@ const BookingApp = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-cream to-background">
-      <div className="container mx-auto px-4 py-8 max-w-4xl">
+      <div className="container mx-auto px-3 sm:px-4 py-4 sm:py-8 max-w-4xl">
         <BookingHeader />
         
-        <Card className="mt-8 p-6 shadow-soft">
+        <Card className="mt-4 sm:mt-8 p-3 sm:p-6 shadow-soft">
           <BookingSteps currentStep={currentStep} />
           
-          <div className="mt-8">
+          <div className="mt-4 sm:mt-8">
             {currentStep === 1 && (
               <ServiceSelection
                 bookingData={bookingData}
