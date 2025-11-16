@@ -140,6 +140,15 @@ const BookingApp = () => {
             )}
           </div>
         </Card>
+
+        <div className="text-center mt-4">
+          <a 
+            href="/admin" 
+            className="text-xs text-muted-foreground hover:text-foreground transition-colors"
+          >
+            Administration
+          </a>
+        </div>
       </div>
     </div>
   );
