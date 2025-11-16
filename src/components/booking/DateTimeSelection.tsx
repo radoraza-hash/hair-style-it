@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Calendar } from "@/components/ui/calendar";
@@ -7,6 +7,8 @@ import { BookingData } from "../BookingApp";
 import { Calendar as CalendarIcon, Clock } from "lucide-react";
 import { format, isWeekend, addDays, isBefore, startOfDay } from "date-fns";
 import { fr } from "date-fns/locale";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
 interface DateTimeSelectionProps {
   bookingData: BookingData;
@@ -33,6 +35,82 @@ export const DateTimeSelection = ({
   const [selectedTime, setSelectedTime] = useState<string | undefined>(
     bookingData.time
   );
+  const [unavailableSlots, setUnavailableSlots] = useState<string[]>([]);
+  const [closedDates, setClosedDates] = useState<string[]>([]);
+  const [barberAbsences, setBarberAbsences] = useState<{[key: string]: string[]}>({});
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    fetchClosedDates();
+  }, []);
+
+  useEffect(() => {
+    if (selectedDate && bookingData.barber) {
+      fetchUnavailableSlots(selectedDate, bookingData.barber.id);
+    }
+  }, [selectedDate, bookingData.barber]);
+
+  const fetchClosedDates = async () => {
+    try {
+      const { data, error } = await supabase
+        .from("planning")
+        .select("*");
+
+      if (error) throw error;
+
+      // Récupérer les jours fériés
+      const holidays = (data || [])
+        .filter((entry: any) => entry.type === 'holiday')
+        .map((entry: any) => entry.date);
+      
+      setClosedDates(holidays);
+
+      // Récupérer les absences de coiffeurs
+      const absences: {[key: string]: string[]} = {};
+      (data || [])
+        .filter((entry: any) => entry.type === 'barber_absence')
+        .forEach((entry: any) => {
+          if (!absences[entry.barber_id]) {
+            absences[entry.barber_id] = [];
+          }
+          absences[entry.barber_id].push(entry.date);
+        });
+      
+      setBarberAbsences(absences);
+    } catch (error: any) {
+      console.error("Error fetching closed dates:", error);
+    }
+  };
+
+  const fetchUnavailableSlots = async (date: Date, barberId: string) => {
+    setLoading(true);
+    try {
+      const dateStr = format(date, "yyyy-MM-dd");
+      
+      // Récupérer toutes les réservations pour ce coiffeur à cette date
+      const { data, error } = await supabase
+        .from("bookings")
+        .select("booking_time")
+        .eq("barber_id", barberId)
+        .eq("booking_date", dateStr)
+        .eq("status", "confirmed");
+
+      if (error) {
+        console.error("Error details:", error);
+        // Ne pas bloquer si erreur de permissions
+        setUnavailableSlots([]);
+        return;
+      }
+
+      const bookedSlots = (data || []).map((booking: any) => booking.booking_time);
+      setUnavailableSlots(bookedSlots);
+    } catch (error: any) {
+      console.error("Error fetching unavailable slots:", error);
+      setUnavailableSlots([]);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleDateSelect = (date: Date | undefined) => {
     if (date) {
@@ -48,20 +126,24 @@ export const DateTimeSelection = ({
   };
 
   const isDateDisabled = (date: Date) => {
-    return isBefore(date, startOfDay(new Date())) || isWeekend(date);
-  };
-
-  // Simulated unavailable slots - in a real app, this would come from the backend
-  const getUnavailableSlots = (date: Date) => {
-    // Example: some slots are already booked
-    const dayOfWeek = date.getDay();
-    if (dayOfWeek === 1) { // Monday
-      return ["10:00", "14:30", "16:00"];
+    // Vérifier si la date est dans le passé
+    if (isBefore(date, startOfDay(new Date()))) return true;
+    
+    // Vérifier si c'est le week-end
+    if (isWeekend(date)) return true;
+    
+    // Vérifier si c'est un jour férié
+    const dateStr = format(date, "yyyy-MM-dd");
+    if (closedDates.includes(dateStr)) return true;
+    
+    // Vérifier si le coiffeur est absent
+    if (bookingData.barber && barberAbsences[bookingData.barber.id]) {
+      if (barberAbsences[bookingData.barber.id].includes(dateStr)) return true;
     }
-    return ["11:30", "15:30"];
+    
+    return false;
   };
 
-  const unavailableSlots = selectedDate ? getUnavailableSlots(selectedDate) : [];
   const canProceed = selectedDate && selectedTime;
 
   return (
@@ -105,32 +187,38 @@ export const DateTimeSelection = ({
           </h3>
           
           {selectedDate ? (
-            <div className="grid grid-cols-2 gap-3">
-              {timeSlots.map((time) => {
-                const isUnavailable = unavailableSlots.includes(time);
-                const isSelected = selectedTime === time;
-                
-                return (
-                  <Button
-                    key={time}
-                    variant={isSelected ? "default" : "outline"}
-                    size="sm"
-                    disabled={isUnavailable}
-                    onClick={() => handleTimeSelect(time)}
-                    className={`h-12 ${
-                      isSelected ? "bg-accent text-accent-foreground" : ""
-                    }`}
-                  >
-                    {time}
-                    {isUnavailable && (
-                      <span className="block text-xs opacity-60 mt-1">
-                        Indisponible
-                      </span>
-                    )}
-                  </Button>
-                );
-              })}
-            </div>
+            loading ? (
+              <div className="text-center py-8 text-muted-foreground">
+                Chargement des disponibilités...
+              </div>
+            ) : (
+              <div className="grid grid-cols-2 gap-3">
+                {timeSlots.map((time) => {
+                  const isUnavailable = unavailableSlots.includes(time);
+                  const isSelected = selectedTime === time;
+                  
+                  return (
+                    <Button
+                      key={time}
+                      variant={isSelected ? "default" : "outline"}
+                      size="sm"
+                      disabled={isUnavailable}
+                      onClick={() => handleTimeSelect(time)}
+                      className={`h-12 ${
+                        isSelected ? "bg-accent text-accent-foreground" : ""
+                      }`}
+                    >
+                      {time}
+                      {isUnavailable && (
+                        <span className="block text-xs opacity-60 mt-1">
+                          Réservé
+                        </span>
+                      )}
+                    </Button>
+                  );
+                })}
+              </div>
+            )
           ) : (
             <div className="text-center text-muted-foreground py-8">
               <Clock className="w-12 h-12 mx-auto mb-3 opacity-50" />
