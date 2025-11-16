@@ -102,38 +102,6 @@ export const ContactForm = ({
           {errors.phone && <p className="text-sm text-destructive">{errors.phone}</p>}
         </div>
       </Card>
-            value={name}
-            onChange={(e) => handleNameChange(e.target.value)}
-            className="h-12"
-          />
-          <p className="text-sm text-muted-foreground">
-            Pour personnaliser votre accueil
-          </p>
-        </div>
-
-        <div className="space-y-2">
-          <Label htmlFor="phone" className="text-base font-medium">
-            Numéro de téléphone *
-          </Label>
-          <div className="relative">
-            <Phone className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-            <Input
-              id="phone"
-              type="tel"
-              placeholder="06 12 34 56 78"
-              value={phone}
-              onChange={(e) => handlePhoneChange(e.target.value)}
-              className={`h-12 pl-10 ${phoneError ? "border-destructive" : ""}`}
-            />
-          </div>
-          {phoneError && (
-            <p className="text-sm text-destructive">{phoneError}</p>
-          )}
-          <p className="text-sm text-muted-foreground">
-            Nous vous contacterons si nécessaire pour confirmer votre rendez-vous
-          </p>
-        </div>
-      </Card>
 
       <Card className="p-4 bg-muted/50">
         <div className="flex items-start gap-3">
@@ -141,8 +109,8 @@ export const ContactForm = ({
           <div className="text-sm text-muted-foreground">
             <p className="font-medium mb-1">Protection de vos données</p>
             <p>
-              Vos informations personnelles sont utilisées uniquement pour la gestion 
-              de votre rendez-vous et ne seront pas partagées avec des tiers.
+              Vos informations personnelles sont sécurisées et ne seront utilisées
+              que pour gérer votre rendez-vous.
             </p>
           </div>
         </div>
