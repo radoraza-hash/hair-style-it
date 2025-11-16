@@ -44,36 +44,36 @@ const handler = async (req: Request): Promise<Response> => {
 
     const emailResponse = await resend.emails.send({
       from: "Dev Booking <onboarding@resend.dev>",
-      to: [customerEmail],
-      subject: "Confirmation de votre rendez-vous (TEST)",
+      to: ["rado.raza@gmail.com"],
+      subject: `Nouvelle réservation - ${customerName || 'Client'}`,
       html: `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-          <h1 style="color: #333;">Bonjour ${customerName || 'cher client'},</h1>
+          <h1 style="color: #333;">Nouvelle réservation reçue</h1>
           
-          <p style="font-size: 16px; line-height: 1.6;">
-            Votre rendez-vous est bien enregistré ! ✅ (TEST)
-          </p>
+          <div style="background-color: #fff3cd; padding: 15px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #ffc107;">
+            <p style="margin: 0; font-size: 16px;"><strong>📧 Email du client :</strong> ${customerEmail || 'Non fourni'}</p>
+          </div>
 
           <div style="background-color: #f5f5f5; padding: 20px; border-radius: 8px; margin: 20px 0;">
-            <h2 style="color: #666; font-size: 18px; margin-top: 0;">Détails de votre rendez-vous</h2>
+            <h2 style="color: #666; font-size: 18px; margin-top: 0;">Détails de la réservation</h2>
             
+            <p><strong>👤 Client :</strong> ${customerName || 'Non fourni'}</p>
+            <p><strong>📧 Email :</strong> ${customerEmail || 'Non fourni'}</p>
             <p><strong>📅 Date :</strong> ${new Date(bookingDate).toLocaleDateString('fr-FR', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</p>
             <p><strong>🕐 Heure :</strong> ${bookingTime}</p>
             <p><strong>✂️ Service :</strong> ${serviceName}</p>
             ${options && options.length > 0 ? `<p><strong>➕ Options :</strong></p>${optionsHtml}` : ''}
-            <p><strong>👤 Coiffeur :</strong> ${barberName}</p>
+            <p><strong>💈 Coiffeur :</strong> ${barberName}</p>
             <p><strong>💰 Prix total :</strong> ${totalPrice}€</p>
           </div>
 
-          <p style="font-size: 14px; color: #666;">
-            Nous vous attendons avec plaisir ! Si vous avez besoin de modifier ou annuler votre rendez-vous, 
-            n'hésitez pas à nous contacter.
+          <p style="font-size: 14px; color: #666; background-color: #e3f2fd; padding: 15px; border-radius: 8px;">
+            💡 <strong>Action requise :</strong> Transférez cet email à <strong>${customerEmail || 'l\'adresse du client'}</strong> pour confirmer sa réservation.
           </p>
 
           <p style="margin-top: 30px; font-size: 14px; color: #999;">
-            Ceci est un email de TEST via resend.dev<br>
-            À bientôt,<br>
-            L'équipe du salon
+            Cet email contient une nouvelle réservation<br>
+            Système de réservation automatique
           </p>
         </div>
       `,
