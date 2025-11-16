@@ -43,7 +43,7 @@ const handler = async (req: Request): Promise<Response> => {
       : '';
 
     const emailResponse = await resend.emails.send({
-      from: "Salon de Coiffure <onboarding@resend.dev>",
+      from: "Salon de Coiffure <noreply@doraeru102.resend.app>",
       to: [customerEmail],
       subject: "Confirmation de votre rendez-vous",
       html: `
