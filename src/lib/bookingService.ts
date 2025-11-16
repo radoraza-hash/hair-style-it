@@ -6,7 +6,7 @@ export const saveBooking = async (bookingData: any) => {
     throw new Error("Données de réservation incomplètes");
   }
 
-  const { data, error } = await supabase.from("bookings").insert({
+  const { error } = await supabase.from("bookings").insert({
     customer_name: bookingData.name || null,
     customer_email: bookingData.email || null,
     customer_phone: bookingData.phone,
@@ -18,12 +18,12 @@ export const saveBooking = async (bookingData: any) => {
     booking_date: format(bookingData.date, "yyyy-MM-dd"),
     booking_time: bookingData.time,
     status: "confirmed",
-  }).select().single();
+  });
 
   if (error) throw error;
   
   // Envoyer l'email de confirmation si l'email est fourni
-  if (bookingData.email && data) {
+  if (bookingData.email) {
     try {
       await supabase.functions.invoke("send-booking-confirmation", {
         body: {
@@ -44,6 +44,6 @@ export const saveBooking = async (bookingData: any) => {
     }
   }
   
-  return data;
+  return { success: true };
 };
 
