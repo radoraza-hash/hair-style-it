@@ -1,11 +1,14 @@
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { BookingData } from "../BookingApp";
-import { Calendar, Clock, User, Phone, Scissors, Check } from "lucide-react";
+import { Calendar, Clock, User, Phone, Scissors, Check, Mail } from "lucide-react";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
+import { saveBooking } from "@/lib/bookingService";
+import { toast } from "sonner";
 
 interface BookingSummaryProps {
   bookingData: BookingData;
@@ -18,6 +21,21 @@ export const BookingSummary = ({
   onConfirm, 
   onPrev 
 }: BookingSummaryProps) => {
+  const [loading, setLoading] = useState(false);
+  
+  const handleConfirm = async () => {
+    try {
+      setLoading(true);
+      await saveBooking(bookingData);
+      toast.success("Réservation confirmée !");
+      onConfirm();
+    } catch (error: any) {
+      toast.error("Erreur lors de la réservation");
+      console.error(error);
+    } finally {
+      setLoading(false);
+    }
+  };
   const totalDuration = (bookingData.service?.duration || 0) + 
     bookingData.options.reduce((sum, option) => sum + option.duration, 0);
 
@@ -166,11 +184,12 @@ export const BookingSummary = ({
           Modifier
         </Button>
         <Button 
-          onClick={onConfirm}
+          onClick={handleConfirm}
+          disabled={loading}
           size="lg"
           className="min-w-40 bg-accent hover:bg-accent/90 text-accent-foreground"
         >
-          Confirmer la réservation
+          {loading ? "Confirmation..." : "Confirmer la réservation"}
         </Button>
       </div>
     </div>

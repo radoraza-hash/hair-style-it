@@ -4,7 +4,8 @@ import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { BookingData } from "../BookingApp";
-import { Phone, User } from "lucide-react";
+import { Phone, User, Mail } from "lucide-react";
+import { z } from "zod";
 
 interface ContactFormProps {
   bookingData: BookingData;
@@ -13,6 +14,12 @@ interface ContactFormProps {
   onPrev: () => void;
 }
 
+const contactSchema = z.object({
+  phone: z.string().min(10, "Numéro de téléphone invalide").max(15, "Numéro de téléphone trop long"),
+  email: z.string().email("Email invalide").optional().or(z.literal("")),
+  name: z.string().max(100, "Nom trop long").optional(),
+});
+
 export const ContactForm = ({ 
   bookingData, 
   updateBookingData, 
@@ -20,40 +27,23 @@ export const ContactForm = ({
   onPrev 
 }: ContactFormProps) => {
   const [phone, setPhone] = useState(bookingData.phone);
+  const [email, setEmail] = useState(bookingData.email || "");
   const [name, setName] = useState(bookingData.name || "");
-  const [phoneError, setPhoneError] = useState("");
-
-  const validatePhone = (phoneNumber: string) => {
-    // French phone number validation (simple pattern)
-    const phoneRegex = /^(?:(?:\+|00)33|0)\s*[1-9](?:[\s.-]*\d{2}){4}$/;
-    return phoneRegex.test(phoneNumber.replace(/\s/g, ""));
-  };
-
-  const handlePhoneChange = (value: string) => {
-    setPhone(value);
-    if (phoneError && value) {
-      setPhoneError("");
-    }
-    updateBookingData({ phone: value });
-  };
-
-  const handleNameChange = (value: string) => {
-    setName(value);
-    updateBookingData({ name: value });
-  };
+  const [errors, setErrors] = useState<{ phone?: string; email?: string }>({});
 
   const handleNext = () => {
-    if (!phone.trim()) {
-      setPhoneError("Le numéro de téléphone est obligatoire");
-      return;
-    }
+    const validation = contactSchema.safeParse({ phone, email, name });
     
-    if (!validatePhone(phone)) {
-      setPhoneError("Veuillez entrer un numéro de téléphone valide");
+    if (!validation.success) {
+      const newErrors: { phone?: string; email?: string } = {};
+      validation.error.errors.forEach(err => {
+        if (err.path[0]) newErrors[err.path[0] as keyof typeof newErrors] = err.message;
+      });
+      setErrors(newErrors);
       return;
     }
 
-    setPhoneError("");
+    setErrors({});
     onNext();
   };
 
@@ -71,13 +61,47 @@ export const ContactForm = ({
 
       <Card className="p-6 space-y-6">
         <div className="space-y-2">
-          <Label htmlFor="name" className="text-base font-medium">
-            Nom (optionnel)
-          </Label>
+          <Label htmlFor="name">Nom (optionnel)</Label>
           <Input
             id="name"
-            type="text"
+            value={name}
+            onChange={(e) => { setName(e.target.value); updateBookingData({ name: e.target.value }); }}
             placeholder="Votre nom"
+          />
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="email">Email (optionnel)</Label>
+          <div className="relative">
+            <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+            <Input
+              id="email"
+              type="email"
+              value={email}
+              onChange={(e) => { setEmail(e.target.value); updateBookingData({ email: e.target.value }); }}
+              placeholder="votre@email.com"
+              className={`pl-10 ${errors.email ? "border-destructive" : ""}`}
+            />
+          </div>
+          {errors.email && <p className="text-sm text-destructive">{errors.email}</p>}
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="phone">Numéro de téléphone *</Label>
+          <div className="relative">
+            <Phone className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+            <Input
+              id="phone"
+              type="tel"
+              value={phone}
+              onChange={(e) => { setPhone(e.target.value); updateBookingData({ phone: e.target.value }); }}
+              placeholder="06 12 34 56 78"
+              className={`pl-10 ${errors.phone ? "border-destructive" : ""}`}
+            />
+          </div>
+          {errors.phone && <p className="text-sm text-destructive">{errors.phone}</p>}
+        </div>
+      </Card>
             value={name}
             onChange={(e) => handleNameChange(e.target.value)}
             className="h-12"

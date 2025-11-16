@@ -1,9 +1,12 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { BookingData, Barber } from "../BookingApp";
 import { User, Star } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
 interface BarberSelectionProps {
   bookingData: BookingData;
@@ -12,36 +15,44 @@ interface BarberSelectionProps {
   onPrev: () => void;
 }
 
-const barbers: Barber[] = [
-  {
-    id: "rado",
-    name: "Rado",
-    avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&h=150&fit=crop&crop=face",
-    specialties: ["Coupe moderne", "Barbe", "Défrisage"]
-  },
-  {
-    id: "raza",
-    name: "Raza",
-    avatar: "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=150&h=150&fit=crop&crop=face",
-    specialties: ["Coupe classique", "Lissage", "Brushing"]
-  },
-  {
-    id: "daynko",
-    name: "Daynko",
-    avatar: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=face",
-    specialties: ["Coupe enfant", "Coupe + barbe", "Style créatif"]
-  }
-];
-
 export const BarberSelection = ({ 
   bookingData, 
   updateBookingData, 
   onNext, 
   onPrev 
 }: BarberSelectionProps) => {
+  const [barbers, setBarbers] = useState<Barber[]>([]);
+  const [loading, setLoading] = useState(true);
   const [selectedBarber, setSelectedBarber] = useState<Barber | undefined>(
     bookingData.barber
   );
+
+  useEffect(() => {
+    fetchBarbers();
+  }, []);
+
+  const fetchBarbers = async () => {
+    try {
+      const { data, error } = await supabase
+        .from("barbers")
+        .select("*")
+        .eq("is_active", true)
+        .order("created_at", { ascending: true });
+
+      if (error) throw error;
+      
+      setBarbers(data.map(b => ({
+        id: b.id,
+        name: b.name,
+        avatar: b.avatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${b.name}`,
+        specialties: b.specialties || []
+      })));
+    } catch (error: any) {
+      toast.error("Erreur lors du chargement des coiffeurs");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleBarberSelect = (barber: Barber) => {
     setSelectedBarber(barber);
@@ -49,6 +60,14 @@ export const BarberSelection = ({
   };
 
   const canProceed = selectedBarber !== undefined;
+
+  if (loading) {
+    return <div className="text-center py-8">Chargement des coiffeurs...</div>;
+  }
+
+  if (barbers.length === 0) {
+    return <div className="text-center py-8 text-muted-foreground">Aucun coiffeur disponible</div>;
+  }
 
   return (
     <div className="space-y-6">
@@ -74,11 +93,10 @@ export const BarberSelection = ({
             >
               <div className="flex flex-col items-center space-y-4">
                 <div className="relative">
-                  <img
-                    src={barber.avatar}
-                    alt={barber.name}
-                    className="w-20 h-20 rounded-full object-cover border-4 border-background shadow-soft"
-                  />
+                  <Avatar className="w-20 h-20 border-4 border-background shadow-soft">
+                    <AvatarImage src={barber.avatar} alt={barber.name} />
+                    <AvatarFallback>{barber.name[0]}</AvatarFallback>
+                  </Avatar>
                   {selectedBarber?.id === barber.id && (
                     <div className="absolute -top-1 -right-1 w-6 h-6 bg-accent text-accent-foreground rounded-full flex items-center justify-center">
                       <Star className="w-3 h-3 fill-current" />

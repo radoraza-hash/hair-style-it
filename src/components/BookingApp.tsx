@@ -37,6 +37,7 @@ export interface BookingData {
   date?: Date;
   time?: string;
   phone: string;
+  email?: string;
   name?: string;
   totalPrice: number;
 }
