@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { BookingsTable } from "@/components/admin/BookingsTable";
 import { BarbersManagement } from "@/components/admin/BarbersManagement";
-import { HolidaysManagement } from "@/components/admin/HolidaysManagement";
+import { PlanningManagement } from "@/components/admin/PlanningManagement";
 import { LogOut, Calendar, Users, X } from "lucide-react";
 import { toast } from "sonner";
 
@@ -95,9 +95,9 @@ const Admin = () => {
               <Users className="w-4 h-4 mr-2" />
               Coiffeurs
             </TabsTrigger>
-            <TabsTrigger value="holidays">
-              <X className="w-4 h-4 mr-2" />
-              Jours fériés
+            <TabsTrigger value="planning">
+              <Calendar className="w-4 h-4 mr-2" />
+              Planning
             </TabsTrigger>
           </TabsList>
 
@@ -113,9 +113,9 @@ const Admin = () => {
             </Card>
           </TabsContent>
 
-          <TabsContent value="holidays">
+          <TabsContent value="planning">
             <Card className="p-6">
-              <HolidaysManagement />
+              <PlanningManagement />
             </Card>
           </TabsContent>
         </Tabs>

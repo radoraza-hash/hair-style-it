@@ -106,26 +106,40 @@ export type Database = {
           },
         ]
       }
-      holidays: {
+      planning: {
         Row: {
+          barber_id: string | null
           created_at: string | null
           date: string
           description: string | null
           id: string
+          type: string
         }
         Insert: {
+          barber_id?: string | null
           created_at?: string | null
           date: string
           description?: string | null
           id?: string
+          type?: string
         }
         Update: {
+          barber_id?: string | null
           created_at?: string | null
           date?: string
           description?: string | null
           id?: string
+          type?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "planning_barber_id_fkey"
+            columns: ["barber_id"]
+            isOneToOne: false
+            referencedRelation: "barbers"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       user_roles: {
         Row: {
