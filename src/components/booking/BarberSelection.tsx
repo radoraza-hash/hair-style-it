@@ -70,28 +70,28 @@ export const BarberSelection = ({
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6">
       <div>
-        <h2 className="text-2xl font-bold mb-4 flex items-center gap-2">
-          <User className="w-6 h-6 text-accent" />
+        <h2 className="text-xl sm:text-2xl font-bold mb-3 sm:mb-4 flex items-center gap-2">
+          <User className="w-5 h-5 sm:w-6 sm:h-6 text-accent" />
           Choisissez votre coiffeur
         </h2>
-        <p className="text-muted-foreground mb-6">
+        <p className="text-sm sm:text-base text-muted-foreground mb-4 sm:mb-6">
           Sélectionnez le coiffeur qui s'occupera de vous
         </p>
         
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 sm:gap-6">
           {barbers.map((barber) => (
             <Card
               key={barber.id}
-              className={`p-6 cursor-pointer transition-all duration-200 hover:shadow-soft text-center ${
+              className={`p-4 sm:p-6 cursor-pointer transition-all duration-200 hover:shadow-soft text-center ${
                 selectedBarber?.id === barber.id
                   ? "ring-2 ring-accent bg-accent/5"
                   : "hover:border-accent/50"
               }`}
               onClick={() => handleBarberSelect(barber)}
             >
-              <div className="flex flex-col items-center space-y-4">
+              <div className="flex flex-col items-center space-y-3 sm:space-y-4">
                 <div className="relative">
                   <Avatar className="w-20 h-20 border-4 border-background shadow-soft">
                     <AvatarImage src={barber.avatar} alt={barber.name} />

@@ -147,37 +147,39 @@ export const DateTimeSelection = ({
   const canProceed = selectedDate && selectedTime;
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6">
       <div>
-        <h2 className="text-2xl font-bold mb-4 flex items-center gap-2">
-          <CalendarIcon className="w-6 h-6 text-accent" />
+        <h2 className="text-xl sm:text-2xl font-bold mb-3 sm:mb-4 flex items-center gap-2">
+          <CalendarIcon className="w-5 h-5 sm:w-6 sm:h-6 text-accent" />
           Choisissez date et heure
         </h2>
-        <p className="text-muted-foreground mb-6">
+        <p className="text-sm sm:text-base text-muted-foreground mb-4 sm:mb-6">
           Sélectionnez votre créneau de rendez-vous (fermé le week-end)
         </p>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-8">
         {/* Calendar */}
-        <Card className="p-6">
-          <h3 className="font-semibold mb-4">Choisir une date</h3>
-          <Calendar
-            mode="single"
-            selected={selectedDate}
-            onSelect={handleDateSelect}
-            disabled={isDateDisabled}
-            locale={fr}
-            fromDate={new Date()}
-            toDate={addDays(new Date(), 60)}
-            className="rounded-md border-0"
-          />
+        <Card className="p-4 sm:p-6">
+          <h3 className="text-base sm:text-lg font-semibold mb-3 sm:mb-4">Choisir une date</h3>
+          <div className="flex justify-center">
+            <Calendar
+              mode="single"
+              selected={selectedDate}
+              onSelect={handleDateSelect}
+              disabled={isDateDisabled}
+              locale={fr}
+              fromDate={new Date()}
+              toDate={addDays(new Date(), 60)}
+              className="rounded-md border-0"
+            />
+          </div>
         </Card>
 
         {/* Time slots */}
-        <Card className="p-6">
-          <h3 className="font-semibold mb-4 flex items-center gap-2">
-            <Clock className="w-5 h-5 text-accent" />
+        <Card className="p-4 sm:p-6">
+          <h3 className="text-base sm:text-lg font-semibold mb-3 sm:mb-4 flex items-center gap-2">
+            <Clock className="w-4 h-4 sm:w-5 sm:h-5 text-accent" />
             Créneaux disponibles
             {selectedDate && (
               <Badge variant="outline" className="ml-2">

@@ -48,18 +48,18 @@ export const ContactForm = ({
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6">
       <div>
-        <h2 className="text-2xl font-bold mb-4 flex items-center gap-2">
-          <User className="w-6 h-6 text-accent" />
+        <h2 className="text-xl sm:text-2xl font-bold mb-3 sm:mb-4 flex items-center gap-2">
+          <User className="w-5 h-5 sm:w-6 sm:h-6 text-accent" />
           Vos informations de contact
         </h2>
-        <p className="text-muted-foreground mb-6">
+        <p className="text-sm sm:text-base text-muted-foreground mb-4 sm:mb-6">
           Renseignez vos coordonnées pour finaliser la réservation
         </p>
       </div>
 
-      <Card className="p-6 space-y-6">
+      <Card className="p-4 sm:p-6 space-y-4 sm:space-y-6">
         <div className="space-y-2">
           <Label htmlFor="name">Nom (optionnel)</Label>
           <Input
