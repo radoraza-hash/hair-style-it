@@ -8,16 +8,15 @@ import { Calendar as CalendarIcon, Clock } from "lucide-react";
 import { format, isWeekend, addDays, isBefore, startOfDay } from "date-fns";
 import { fr } from "date-fns/locale";
 import { supabase } from "@/integrations/supabase/client";
-import { toast } from "sonner";
 
 interface DateTimeSelectionProps {
   bookingData: BookingData;
   updateBookingData: (updates: Partial<BookingData>) => void;
   onNext: () => void;
   onPrev: () => void;
+  salonId: string;
 }
 
-// Créneaux disponibles par jour
 const timeSlots = [
   "09:00", "09:30", "10:00", "10:30", "11:00", "11:30",
   "14:00", "14:30", "15:00", "15:30", "16:00", "16:30", "17:00", "17:30"
@@ -27,14 +26,11 @@ export const DateTimeSelection = ({
   bookingData, 
   updateBookingData, 
   onNext, 
-  onPrev 
+  onPrev,
+  salonId,
 }: DateTimeSelectionProps) => {
-  const [selectedDate, setSelectedDate] = useState<Date | undefined>(
-    bookingData.date
-  );
-  const [selectedTime, setSelectedTime] = useState<string | undefined>(
-    bookingData.time
-  );
+  const [selectedDate, setSelectedDate] = useState<Date | undefined>(bookingData.date);
+  const [selectedTime, setSelectedTime] = useState<string | undefined>(bookingData.time);
   const [unavailableSlots, setUnavailableSlots] = useState<string[]>([]);
   const [closedDates, setClosedDates] = useState<string[]>([]);
   const [barberAbsences, setBarberAbsences] = useState<{[key: string]: string[]}>({});
@@ -42,7 +38,7 @@ export const DateTimeSelection = ({
 
   useEffect(() => {
     fetchClosedDates();
-  }, []);
+  }, [salonId]);
 
   useEffect(() => {
     if (selectedDate && bookingData.barber) {
@@ -54,30 +50,27 @@ export const DateTimeSelection = ({
     try {
       const { data, error } = await supabase
         .from("planning")
-        .select("*");
+        .select("*")
+        .eq("salon_id", salonId);
 
       if (error) throw error;
 
-      // Récupérer les jours fériés
       const holidays = (data || [])
         .filter((entry: any) => entry.type === 'holiday')
         .map((entry: any) => entry.date);
       
       setClosedDates(holidays);
 
-      // Récupérer les absences de coiffeurs
       const absences: {[key: string]: string[]} = {};
       (data || [])
         .filter((entry: any) => entry.type === 'barber_absence')
         .forEach((entry: any) => {
-          if (!absences[entry.barber_id]) {
-            absences[entry.barber_id] = [];
-          }
+          if (!absences[entry.barber_id]) absences[entry.barber_id] = [];
           absences[entry.barber_id].push(entry.date);
         });
       
       setBarberAbsences(absences);
-    } catch (error: any) {
+    } catch (error) {
       console.error("Error fetching closed dates:", error);
     }
   };
@@ -86,8 +79,6 @@ export const DateTimeSelection = ({
     setLoading(true);
     try {
       const dateStr = format(date, "yyyy-MM-dd");
-      
-      // Récupérer toutes les réservations pour ce coiffeur à cette date
       const { data, error } = await supabase
         .from("bookings")
         .select("booking_time")
@@ -96,16 +87,12 @@ export const DateTimeSelection = ({
         .eq("status", "confirmed");
 
       if (error) {
-        console.error("Error details:", error);
-        // Ne pas bloquer si erreur de permissions
         setUnavailableSlots([]);
         return;
       }
 
-      const bookedSlots = (data || []).map((booking: any) => booking.booking_time);
-      setUnavailableSlots(bookedSlots);
-    } catch (error: any) {
-      console.error("Error fetching unavailable slots:", error);
+      setUnavailableSlots((data || []).map((b: any) => b.booking_time));
+    } catch {
       setUnavailableSlots([]);
     } finally {
       setLoading(false);
@@ -115,7 +102,7 @@ export const DateTimeSelection = ({
   const handleDateSelect = (date: Date | undefined) => {
     if (date) {
       setSelectedDate(date);
-      setSelectedTime(undefined); // Reset time when date changes
+      setSelectedTime(undefined);
       updateBookingData({ date, time: undefined });
     }
   };
@@ -126,21 +113,11 @@ export const DateTimeSelection = ({
   };
 
   const isDateDisabled = (date: Date) => {
-    // Vérifier si la date est dans le passé
     if (isBefore(date, startOfDay(new Date()))) return true;
-    
-    // Vérifier si c'est le week-end
     if (isWeekend(date)) return true;
-    
-    // Vérifier si c'est un jour férié
     const dateStr = format(date, "yyyy-MM-dd");
     if (closedDates.includes(dateStr)) return true;
-    
-    // Vérifier si le coiffeur est absent
-    if (bookingData.barber && barberAbsences[bookingData.barber.id]) {
-      if (barberAbsences[bookingData.barber.id].includes(dateStr)) return true;
-    }
-    
+    if (bookingData.barber && barberAbsences[bookingData.barber.id]?.includes(dateStr)) return true;
     return false;
   };
 
@@ -159,7 +136,6 @@ export const DateTimeSelection = ({
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-8">
-        {/* Calendar */}
         <Card className="p-4 sm:p-6">
           <h3 className="text-base sm:text-lg font-semibold mb-3 sm:mb-4">Choisir une date</h3>
           <div className="flex justify-center">
@@ -176,7 +152,6 @@ export const DateTimeSelection = ({
           </div>
         </Card>
 
-        {/* Time slots */}
         <Card className="p-4 sm:p-6">
           <h3 className="text-base sm:text-lg font-semibold mb-3 sm:mb-4 flex items-center gap-2">
             <Clock className="w-4 h-4 sm:w-5 sm:h-5 text-accent" />
@@ -190,15 +165,12 @@ export const DateTimeSelection = ({
           
           {selectedDate ? (
             loading ? (
-              <div className="text-center py-8 text-muted-foreground">
-                Chargement des disponibilités...
-              </div>
+              <div className="text-center py-8 text-muted-foreground">Chargement des disponibilités...</div>
             ) : (
               <div className="grid grid-cols-2 gap-3">
                 {timeSlots.map((time) => {
                   const isUnavailable = unavailableSlots.includes(time);
                   const isSelected = selectedTime === time;
-                  
                   return (
                     <Button
                       key={time}
@@ -206,16 +178,10 @@ export const DateTimeSelection = ({
                       size="sm"
                       disabled={isUnavailable}
                       onClick={() => handleTimeSelect(time)}
-                      className={`h-12 ${
-                        isSelected ? "bg-accent text-accent-foreground" : ""
-                      }`}
+                      className={`h-12 ${isSelected ? "bg-accent text-accent-foreground" : ""}`}
                     >
                       {time}
-                      {isUnavailable && (
-                        <span className="block text-xs opacity-60 mt-1">
-                          Réservé
-                        </span>
-                      )}
+                      {isUnavailable && <span className="block text-xs opacity-60 mt-1">Réservé</span>}
                     </Button>
                   );
                 })}
@@ -239,29 +205,14 @@ export const DateTimeSelection = ({
                 {format(selectedDate, "EEEE d MMMM yyyy", { locale: fr })} à {selectedTime}
               </p>
             </div>
-            <Badge className="bg-accent text-accent-foreground">
-              Disponible
-            </Badge>
+            <Badge className="bg-accent text-accent-foreground">Disponible</Badge>
           </div>
         </Card>
       )}
 
       <div className="flex justify-between">
-        <Button 
-          onClick={onPrev}
-          variant="outline"
-          size="lg"
-        >
-          Retour
-        </Button>
-        <Button 
-          onClick={onNext}
-          disabled={!canProceed}
-          size="lg"
-          className="min-w-32"
-        >
-          Continuer
-        </Button>
+        <Button onClick={onPrev} variant="outline" size="lg">Retour</Button>
+        <Button onClick={onNext} disabled={!canProceed} size="lg" className="min-w-32">Continuer</Button>
       </div>
     </div>
   );
