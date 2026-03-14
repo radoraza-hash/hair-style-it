@@ -1,12 +1,17 @@
+import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { CheckCircle, Calendar, Phone, Home } from "lucide-react";
+import { SalonData } from "@/pages/SalonBooking";
 
 interface SuccessPageProps {
   onNewBooking: () => void;
+  salon: SalonData;
 }
 
-export const SuccessPage = ({ onNewBooking }: SuccessPageProps) => {
+export const SuccessPage = ({ onNewBooking, salon }: SuccessPageProps) => {
+  const navigate = useNavigate();
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-cream to-background flex items-center justify-center px-4">
       <Card className="w-full max-w-2xl p-8 text-center shadow-soft">
@@ -18,7 +23,7 @@ export const SuccessPage = ({ onNewBooking }: SuccessPageProps) => {
             Votre rendez-vous est confirmé !
           </h1>
           <p className="text-lg text-muted-foreground">
-            Nous avons hâte de vous accueillir dans notre salon
+            Nous avons hâte de vous accueillir chez {salon.name}
           </p>
         </div>
 
@@ -30,11 +35,10 @@ export const SuccessPage = ({ onNewBooking }: SuccessPageProps) => {
               <div>
                 <p className="font-medium">Confirmation par SMS</p>
                 <p className="text-sm text-muted-foreground">
-                  Vous recevrez un SMS de confirmation avec tous les détails de votre rendez-vous
+                  Vous recevrez un SMS de confirmation avec tous les détails
                 </p>
               </div>
             </div>
-            
             <div className="flex items-start gap-3">
               <Calendar className="w-5 h-5 text-accent mt-0.5 flex-shrink-0" />
               <div>
@@ -44,7 +48,6 @@ export const SuccessPage = ({ onNewBooking }: SuccessPageProps) => {
                 </p>
               </div>
             </div>
-            
             <div className="flex items-start gap-3">
               <Home className="w-5 h-5 text-accent mt-0.5 flex-shrink-0" />
               <div>
@@ -62,31 +65,29 @@ export const SuccessPage = ({ onNewBooking }: SuccessPageProps) => {
             Une question ? Besoin de modifier votre rendez-vous ?
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button 
-              onClick={onNewBooking}
-              variant="outline"
-              size="lg"
-              className="min-w-40"
-            >
+            <Button onClick={onNewBooking} variant="outline" size="lg" className="min-w-40">
               Nouveau rendez-vous
             </Button>
-            <Button 
-              size="lg"
-              className="min-w-40"
-              onClick={() => window.location.href = "tel:0123456789"}
-            >
-              Nous contacter
-            </Button>
+            {salon.phone && (
+              <Button size="lg" className="min-w-40" onClick={() => window.location.href = `tel:${salon.phone}`}>
+                Nous contacter
+              </Button>
+            )}
           </div>
+          <Button variant="link" onClick={() => navigate("/")}>
+            ← Retour à la liste des salons
+          </Button>
         </div>
 
-        <div className="mt-8 pt-6 border-t border-border">
-          <p className="text-sm text-muted-foreground">
-            📍 123 Rue de la Beauté, 75001 Paris<br />
-            📞 01 23 45 67 89<br />
-            🕒 Ouvert du lundi au vendredi, 9h-18h
-          </p>
-        </div>
+        {salon.address && (
+          <div className="mt-8 pt-6 border-t border-border">
+            <p className="text-sm text-muted-foreground">
+              📍 {salon.address}<br />
+              {salon.phone && <>📞 {salon.phone}<br /></>}
+              🕒 Ouvert du lundi au vendredi, 9h-18h
+            </p>
+          </div>
+        )}
       </Card>
     </div>
   );

@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { BookingSteps } from "./booking/BookingSteps";
 import { ServiceSelection } from "./booking/ServiceSelection";
 import { BarberSelection } from "./booking/BarberSelection";
@@ -8,6 +9,7 @@ import { BookingSummary } from "./booking/BookingSummary";
 import { SuccessPage } from "./booking/SuccessPage";
 import { BookingHeader } from "./booking/BookingHeader";
 import { Card } from "./ui/card";
+import { SalonData } from "@/pages/SalonBooking";
 
 export interface Service {
   id: string;
@@ -42,7 +44,12 @@ export interface BookingData {
   totalPrice: number;
 }
 
-const BookingApp = () => {
+interface BookingAppProps {
+  salon: SalonData;
+}
+
+const BookingApp = ({ salon }: BookingAppProps) => {
+  const navigate = useNavigate();
   const [currentStep, setCurrentStep] = useState(1);
   const [bookingData, setBookingData] = useState<BookingData>({
     options: [],
@@ -54,7 +61,6 @@ const BookingApp = () => {
     setBookingData(prev => {
       const newData = { ...prev, ...updates };
       
-      // Recalculate total price
       let totalPrice = newData.service?.price || 0;
       totalPrice += newData.options.reduce((sum, option) => sum + option.price, 0);
       
@@ -84,13 +90,13 @@ const BookingApp = () => {
   };
 
   if (currentStep === 6) {
-    return <SuccessPage onNewBooking={resetBooking} />;
+    return <SuccessPage onNewBooking={resetBooking} salon={salon} />;
   }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-cream to-background">
       <div className="container mx-auto px-3 sm:px-4 py-4 sm:py-8 max-w-4xl">
-        <BookingHeader />
+        <BookingHeader salon={salon} />
         
         <Card className="mt-4 sm:mt-8 p-3 sm:p-6 shadow-soft">
           <BookingSteps currentStep={currentStep} />
@@ -101,6 +107,7 @@ const BookingApp = () => {
                 bookingData={bookingData}
                 updateBookingData={updateBookingData}
                 onNext={nextStep}
+                salonId={salon.id}
               />
             )}
             
@@ -110,6 +117,7 @@ const BookingApp = () => {
                 updateBookingData={updateBookingData}
                 onNext={nextStep}
                 onPrev={prevStep}
+                salonId={salon.id}
               />
             )}
             
@@ -119,6 +127,7 @@ const BookingApp = () => {
                 updateBookingData={updateBookingData}
                 onNext={nextStep}
                 onPrev={prevStep}
+                salonId={salon.id}
               />
             )}
             
@@ -136,6 +145,7 @@ const BookingApp = () => {
                 bookingData={bookingData}
                 onConfirm={nextStep}
                 onPrev={prevStep}
+                salonId={salon.id}
               />
             )}
           </div>

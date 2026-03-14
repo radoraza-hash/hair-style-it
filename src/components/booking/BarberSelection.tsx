@@ -13,13 +13,15 @@ interface BarberSelectionProps {
   updateBookingData: (updates: Partial<BookingData>) => void;
   onNext: () => void;
   onPrev: () => void;
+  salonId: string;
 }
 
 export const BarberSelection = ({ 
   bookingData, 
   updateBookingData, 
   onNext, 
-  onPrev 
+  onPrev,
+  salonId,
 }: BarberSelectionProps) => {
   const [barbers, setBarbers] = useState<Barber[]>([]);
   const [loading, setLoading] = useState(true);
@@ -29,25 +31,26 @@ export const BarberSelection = ({
 
   useEffect(() => {
     fetchBarbers();
-  }, []);
+  }, [salonId]);
 
   const fetchBarbers = async () => {
     try {
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from("barbers")
         .select("*")
         .eq("is_active", true)
+        .eq("salon_id", salonId)
         .order("created_at", { ascending: true });
 
       if (error) throw error;
       
-      setBarbers(data.map(b => ({
+      setBarbers((data || []).map(b => ({
         id: b.id,
         name: b.name,
         avatar: b.avatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${b.name}`,
         specialties: b.specialties || []
       })));
-    } catch (error: any) {
+    } catch (error) {
       toast.error("Erreur lors du chargement des coiffeurs");
     } finally {
       setLoading(false);
@@ -66,7 +69,7 @@ export const BarberSelection = ({
   }
 
   if (barbers.length === 0) {
-    return <div className="text-center py-8 text-muted-foreground">Aucun coiffeur disponible</div>;
+    return <div className="text-center py-8 text-muted-foreground">Aucun coiffeur disponible pour ce salon</div>;
   }
 
   return (
@@ -125,21 +128,8 @@ export const BarberSelection = ({
       </div>
 
       <div className="flex justify-between">
-        <Button 
-          onClick={onPrev}
-          variant="outline"
-          size="lg"
-        >
-          Retour
-        </Button>
-        <Button 
-          onClick={onNext}
-          disabled={!canProceed}
-          size="lg"
-          className="min-w-32"
-        >
-          Continuer
-        </Button>
+        <Button onClick={onPrev} variant="outline" size="lg">Retour</Button>
+        <Button onClick={onNext} disabled={!canProceed} size="lg" className="min-w-32">Continuer</Button>
       </div>
     </div>
   );

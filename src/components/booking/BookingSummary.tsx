@@ -15,12 +15,14 @@ interface BookingSummaryProps {
   bookingData: BookingData;
   onConfirm: () => void;
   onPrev: () => void;
+  salonId: string;
 }
 
 export const BookingSummary = ({ 
   bookingData, 
   onConfirm, 
-  onPrev 
+  onPrev,
+  salonId,
 }: BookingSummaryProps) => {
   const [loading, setLoading] = useState(false);
   const [subscribeNewsletter, setSubscribeNewsletter] = useState(false);
@@ -28,16 +30,17 @@ export const BookingSummary = ({
   const handleConfirm = async () => {
     try {
       setLoading(true);
-      await saveBooking(bookingData);
+      await saveBooking({ ...bookingData, salonId });
       toast.success("Réservation confirmée !");
       onConfirm();
-    } catch (error: any) {
+    } catch (error) {
       toast.error("Erreur lors de la réservation");
       console.error(error);
     } finally {
       setLoading(false);
     }
   };
+
   const totalDuration = (bookingData.service?.duration || 0) + 
     bookingData.options.reduce((sum, option) => sum + option.duration, 0);
 
@@ -54,28 +57,21 @@ export const BookingSummary = ({
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
-        {/* Services */}
         <Card className="p-4 sm:p-6">
           <h3 className="font-semibold mb-4 flex items-center gap-2">
             <Scissors className="w-5 h-5 text-accent" />
             Services choisis
           </h3>
-          
           <div className="space-y-4">
             {bookingData.service && (
               <div className="flex justify-between items-center">
                 <div>
                   <p className="font-medium">{bookingData.service.name}</p>
-                  <p className="text-sm text-muted-foreground">
-                    {bookingData.service.duration} min
-                  </p>
+                  <p className="text-sm text-muted-foreground">{bookingData.service.duration} min</p>
                 </div>
-                <Badge variant="secondary">
-                  {bookingData.service.price}€
-                </Badge>
+                <Badge variant="secondary">{bookingData.service.price}€</Badge>
               </div>
             )}
-            
             {bookingData.options.length > 0 && (
               <>
                 <Separator />
@@ -85,78 +81,59 @@ export const BookingSummary = ({
                     <div key={option.id} className="flex justify-between items-center">
                       <div>
                         <p className="font-medium">{option.name}</p>
-                        <p className="text-sm text-muted-foreground">
-                          +{option.duration} min
-                        </p>
+                        <p className="text-sm text-muted-foreground">+{option.duration} min</p>
                       </div>
-                      <Badge variant="outline">
-                        +{option.price}€
-                      </Badge>
+                      <Badge variant="outline">+{option.price}€</Badge>
                     </div>
                   ))}
                 </div>
               </>
             )}
-            
             <Separator />
             <div className="flex justify-between items-center font-semibold text-lg">
               <span>Total</span>
               <span className="text-accent">{bookingData.totalPrice}€</span>
             </div>
-            <p className="text-sm text-muted-foreground">
-              Durée totale estimée : {totalDuration} min
-            </p>
+            <p className="text-sm text-muted-foreground">Durée totale estimée : {totalDuration} min</p>
           </div>
         </Card>
 
-        {/* Appointment details */}
         <Card className="p-6">
           <h3 className="font-semibold mb-4">Détails du rendez-vous</h3>
-          
           <div className="space-y-4">
             {bookingData.barber && (
               <div className="flex items-center gap-3">
                 <User className="w-5 h-5 text-muted-foreground" />
                 <div>
                   <p className="font-medium">Coiffeur</p>
-                  <p className="text-sm text-muted-foreground">
-                    {bookingData.barber.name}
-                  </p>
+                  <p className="text-sm text-muted-foreground">{bookingData.barber.name}</p>
                 </div>
               </div>
             )}
-            
             {bookingData.date && (
               <div className="flex items-center gap-3">
                 <Calendar className="w-5 h-5 text-muted-foreground" />
                 <div>
                   <p className="font-medium">Date</p>
-                  <p className="text-sm text-muted-foreground">
-                    {format(bookingData.date, "EEEE d MMMM yyyy", { locale: fr })}
-                  </p>
+                  <p className="text-sm text-muted-foreground">{format(bookingData.date, "EEEE d MMMM yyyy", { locale: fr })}</p>
                 </div>
               </div>
             )}
-            
             {bookingData.time && (
               <div className="flex items-center gap-3">
                 <Clock className="w-5 h-5 text-muted-foreground" />
                 <div>
                   <p className="font-medium">Heure</p>
-                  <p className="text-sm text-muted-foreground">
-                    {bookingData.time}
-                  </p>
+                  <p className="text-sm text-muted-foreground">{bookingData.time}</p>
                 </div>
               </div>
             )}
-            
             <div className="flex items-center gap-3">
               <Phone className="w-5 h-5 text-muted-foreground" />
               <div>
                 <p className="font-medium">Contact</p>
                 <p className="text-sm text-muted-foreground">
-                  {bookingData.name && `${bookingData.name} - `}
-                  {bookingData.phone}
+                  {bookingData.name && `${bookingData.name} - `}{bookingData.phone}
                 </p>
               </div>
             </div>
@@ -186,17 +163,14 @@ export const BookingSummary = ({
               onCheckedChange={(checked) => setSubscribeNewsletter(checked as boolean)}
             />
             <div className="space-y-1">
-              <label
-                htmlFor="newsletter"
-                className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
-              >
+              <label htmlFor="newsletter" className="text-sm font-medium leading-none cursor-pointer">
                 <div className="flex items-center gap-2">
                   <Mail className="w-4 h-4 text-accent" />
                   Recevoir nos offres et actualités
                 </div>
               </label>
               <p className="text-xs text-muted-foreground">
-                En cochant cette case, vous acceptez de recevoir notre newsletter avec nos promotions et nouveautés.
+                En cochant cette case, vous acceptez de recevoir notre newsletter.
               </p>
             </div>
           </div>
@@ -204,13 +178,7 @@ export const BookingSummary = ({
       )}
 
       <div className="flex justify-between">
-        <Button
-          onClick={onPrev}
-          variant="outline"
-          size="lg"
-        >
-          Modifier
-        </Button>
+        <Button onClick={onPrev} variant="outline" size="lg">Modifier</Button>
         <Button 
           onClick={handleConfirm}
           disabled={loading}

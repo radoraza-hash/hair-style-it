@@ -18,11 +18,11 @@ export const saveBooking = async (bookingData: any) => {
     booking_date: format(bookingData.date, "yyyy-MM-dd"),
     booking_time: bookingData.time,
     status: "confirmed",
+    salon_id: bookingData.salonId || null,
   });
 
   if (error) throw error;
   
-  // Envoyer l'email de confirmation si l'email est fourni
   if (bookingData.email) {
     try {
       await supabase.functions.invoke("send-booking-confirmation", {
@@ -37,13 +37,10 @@ export const saveBooking = async (bookingData: any) => {
           options: bookingData.options,
         },
       });
-      console.log("Email de confirmation envoyé");
     } catch (emailError) {
       console.error("Erreur lors de l'envoi de l'email:", emailError);
-      // On ne bloque pas la réservation si l'email échoue
     }
   }
   
   return { success: true };
 };
-
