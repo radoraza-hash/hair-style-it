@@ -22,7 +22,11 @@ interface Booking {
   barbers: { name: string } | null;
 }
 
-export const BookingsTable = () => {
+interface BookingsTableProps {
+  salonId: string;
+}
+
+export const BookingsTable = ({ salonId }: BookingsTableProps) => {
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -38,22 +42,21 @@ export const BookingsTable = () => {
       )
       .subscribe();
 
-    return () => {
-      supabase.removeChannel(channel);
-    };
-  }, []);
+    return () => { supabase.removeChannel(channel); };
+  }, [salonId]);
 
   const fetchBookings = async () => {
     try {
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from("bookings")
         .select("*, barbers(name)")
+        .eq("salon_id", salonId)
         .order("booking_date", { ascending: false })
         .order("booking_time", { ascending: false });
 
       if (error) throw error;
       setBookings(data || []);
-    } catch (error: any) {
+    } catch (error) {
       toast.error("Erreur lors du chargement des réservations");
     } finally {
       setLoading(false);
@@ -62,23 +65,17 @@ export const BookingsTable = () => {
 
   const handleDelete = async (id: string) => {
     if (!confirm("Voulez-vous vraiment supprimer cette réservation ?")) return;
-
     try {
       const { error } = await supabase.from("bookings").delete().eq("id", id);
       if (error) throw error;
       toast.success("Réservation supprimée");
-    } catch (error: any) {
+    } catch {
       toast.error("Erreur lors de la suppression");
     }
   };
 
-  if (loading) {
-    return <div className="text-center py-8">Chargement...</div>;
-  }
-
-  if (bookings.length === 0) {
-    return <div className="text-center py-8 text-muted-foreground">Aucune réservation</div>;
-  }
+  if (loading) return <div className="text-center py-8">Chargement...</div>;
+  if (bookings.length === 0) return <div className="text-center py-8 text-muted-foreground">Aucune réservation</div>;
 
   return (
     <div className="overflow-x-auto">
@@ -99,9 +96,7 @@ export const BookingsTable = () => {
         <TableBody>
           {bookings.map((booking) => (
             <TableRow key={booking.id}>
-              <TableCell>
-                {format(new Date(booking.booking_date), "dd MMM yyyy", { locale: fr })}
-              </TableCell>
+              <TableCell>{format(new Date(booking.booking_date), "dd MMM yyyy", { locale: fr })}</TableCell>
               <TableCell>{booking.booking_time}</TableCell>
               <TableCell>{booking.customer_name || "Non renseigné"}</TableCell>
               <TableCell>{booking.customer_phone}</TableCell>
@@ -114,11 +109,7 @@ export const BookingsTable = () => {
                 </Badge>
               </TableCell>
               <TableCell>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={() => handleDelete(booking.id)}
-                >
+                <Button variant="ghost" size="icon" onClick={() => handleDelete(booking.id)}>
                   <Trash2 className="w-4 h-4 text-destructive" />
                 </Button>
               </TableCell>
