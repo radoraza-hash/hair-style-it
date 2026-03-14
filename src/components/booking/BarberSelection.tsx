@@ -35,7 +35,7 @@ export const BarberSelection = ({
 
   const fetchBarbers = async () => {
     try {
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from("barbers")
         .select("*")
         .eq("is_active", true)
