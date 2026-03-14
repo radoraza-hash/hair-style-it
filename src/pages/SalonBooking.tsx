@@ -26,7 +26,7 @@ const SalonBooking = () => {
 
   const fetchSalon = async (salonSlug: string) => {
     try {
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from("salons")
         .select("*")
         .eq("slug", salonSlug)

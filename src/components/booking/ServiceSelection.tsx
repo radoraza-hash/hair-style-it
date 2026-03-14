@@ -37,7 +37,7 @@ export const ServiceSelection = ({
 
   const fetchServices = async () => {
     try {
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from("services")
         .select("*")
         .eq("salon_id", salonId)
@@ -46,14 +46,15 @@ export const ServiceSelection = ({
 
       if (error) throw error;
 
-      const services = (data || []).filter(s => !s.is_option).map(s => ({
+      const allServices = (data || []) as any[];
+      const services = allServices.filter(s => !s.is_option).map(s => ({
         id: s.id,
         name: s.name,
         price: Number(s.price),
         duration: s.duration,
       }));
 
-      const options = (data || []).filter(s => s.is_option).map(s => ({
+      const options = allServices.filter(s => s.is_option).map(s => ({
         id: s.id,
         name: s.name,
         price: Number(s.price),

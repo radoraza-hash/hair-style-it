@@ -26,7 +26,7 @@ const Index = () => {
 
   const fetchSalons = async () => {
     try {
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from("salons")
         .select("*")
         .order("created_at", { ascending: true });

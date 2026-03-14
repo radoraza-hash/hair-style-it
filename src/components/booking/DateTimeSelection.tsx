@@ -48,7 +48,7 @@ export const DateTimeSelection = ({
 
   const fetchClosedDates = async () => {
     try {
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from("planning")
         .select("*")
         .eq("salon_id", salonId);
